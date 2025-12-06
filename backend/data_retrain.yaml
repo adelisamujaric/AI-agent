@@ -1,0 +1,15 @@
+names:
+- Auto
+- RezervacijaOznaka
+- ZauzetoMjesto
+- NepropisnoParkirano_naInvalidskomMjesto
+- NepropisnoParkirano_prekoLinije
+- NepropisnoParkirano_vanOkviraParkinga
+- InvalidskaOznaka
+- InvalidskoMjesto
+- Tablica
+- PravilnoParkirano
+nc: 10
+path: C:\Users\adeli\PycharmProjects\ai_agent\backend\confirmed
+train: images
+val: images

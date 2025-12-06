@@ -1,0 +1,16 @@
+Auto
+Cesta
+InvalidskaOznaka
+InvalidskoMjesto
+NepropisnoParkirano_naInvalidskomMjesto
+NepropisnoParkirano_prekoLinije
+NepropisnoParkirano_vanOkviraParkinga
+ParkingOznaka
+PjesackiPrelaz
+PravilnoParkirano
+PraznoMjesto
+RezervacijaOznaka
+Tablica
+Trava
+Trotuar
+ZauzetoMjesto

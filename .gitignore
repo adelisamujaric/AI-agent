@@ -1,0 +1,50 @@
+# YOLO models u root folderu
+yolo11n.pt
+yolo11s.pt
+yolov8n.pt
+yolov8s.pt
+
+backend/weights/
+# Backup i retrained modeli
+backend/weights/backup_model_*.pt
+backend/retraining_runs/
+
+# Training data
+runs/
+backend/combined_dataset/
+backend/confirmed/
+backend/confirmed_archive/
+backend/rejected/
+
+# Dataset
+dataset/
+
+# Database
+*.db
+*.sqlite
+
+# Uploads
+backend/uploads/
+
+# Images
+dataset/**/*.jpg
+dataset/**/*.jpeg
+dataset/**/*.png
+*.zip
+
+# Testing
+testing_material/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

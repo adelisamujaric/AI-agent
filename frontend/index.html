@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>ParkSmart AI Agent</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- LEFT PANEL - IMAGE UPLOAD -->
+    <div class="left-panel">
+        <h1>ParkSmart AI Agent</h1>
+
+        <!-- IMAGE FRAME -->
+        <div class="image-frame">
+            <img id="previewImage" alt="Image preview">
+        </div>
+
+        <!-- UPLOAD -->
+        <div class="upload-section">
+            <input type="file" id="imageInput" accept="image/*" style="display:none;">
+            <button onclick="triggerUpload()">📤 Umetni sliku</button>
+        </div>
+
+        <!-- ANALYZE BUTTON -->
+        <button id="actionButton" class="action-btn" onclick="analyzeOrZoom()">
+            🔍 Analiziraj
+        </button>
+    </div>
+
+    <!-- CENTER PANEL - RESULTS -->
+    <div class="center-panel">
+        <h2>Rezultati analize</h2>
+
+        <div class="double-frame">
+            <div class="result-frame">
+                <p class="frame-title">Prva detekcija</p>
+                <div class="img-holder">
+                    <img id="firstImage" alt="Prva analiza">
+                    <canvas id="canvas1"></canvas>
+                </div>
+            </div>
+
+            <div class="result-frame">
+                <p class="frame-title">Bliža detekcija</p>
+                <div class="img-holder">
+                    <img id="secondImage" alt="Druga analiza">
+                    <canvas id="canvas2"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEKSTUALNI PODACI -->
+        <div id="resultsText" class="results-text">
+            <p>Još nema rezultata.</p>
+        </div>
+
+        <!-- CONFIRM/REJECT BUTTONS -->
+
+
+        <div class="confirm-buttons">
+            <button class="confirm" onclick="confirmViolation()">✔ Potvrdi detekciju</button>
+            <button class="reject" onclick="rejectViolation()">✖ Neispravna detekcija</button>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR - LEARNING STATS -->
+    <div class="right-sidebar">
+        <h2>📊 Learning Status</h2>
+
+        <div class="stats-box">
+            <p id="learningInfo">Učitavanje...</p>
+        </div>
+
+        <div class="sidebar-buttons">
+            <button onclick="checkLearningStats()" class="refresh-btn">
+                🔄 Osvježi
+            </button>
+            <button onclick="triggerRetraining()" id="retrainBtn" class="retrain-btn" disabled>
+                🏋️ Retreniraj Model
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div id="loadingSpinner" class="spinner hidden"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

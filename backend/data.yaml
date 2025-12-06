@@ -1,0 +1,4 @@
+train: ../dataset/train/images
+val: ../dataset/val/images
+nc: 16  # broj klasa
+names: ['Auto', 'Cesta', 'InvalidskaOznaka', 'InvalidskoMjesto', 'NepropisnoParkirano_naInvalidskomMjesto', 'NepropisnoParkirano_prekoLinije', 'NepropisnoParkirano_vanOkviraParkinga', 'ParkingOznaka', 'PjesackPrelaz', 'PravilnoParkirano', 'PraznoMjesto', 'RezervacijaOznaka' ,'Tablica', 'Trava', 'Trotuar', 'ZauzetoMjesto']
