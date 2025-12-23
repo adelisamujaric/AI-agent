@@ -1,0 +1,25 @@
+# Core ML & Computer Vision
+ultralytics
+torch
+torchvision
+opencv-python
+easyocr
+pillow
+numpy
+scipy
+
+# Backend Framework
+fastapi
+uvicorn
+python-multipart
+pydantic
+starlette
+
+# Data Processing
+pandas
+PyYAML
+
+# Utilities
+requests
+tqdm
+python-dateutil

@@ -7,7 +7,7 @@ Dataset se koristi za obučavanje modela detekcije objekata koji prepoznaje:
 Karakteristike dataseta
 - Tip podataka: Slike iz ptičije perspektive
 - Izvor: Originalne fotografije makete parking prostora
-- Broj slika: 400
+- Broj slika: ~450
 - Anotacija: Manuelno označeno u Label Studio-u
 - Format anotacija: YOLO
 

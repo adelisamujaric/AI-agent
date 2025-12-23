@@ -78,7 +78,7 @@ async def detect_image(file: UploadFile = File(...)):
 
 
 # --------------------------------------------------------
-# OCR DETECTION (optional)
+# OCR DETECTION
 # --------------------------------------------------------
 @app.post("/detect_plate")
 async def detect_plate(file: UploadFile = File(...)):
@@ -181,7 +181,7 @@ def add_violation_type(v: Prekrsaj):
 
 
 # --------------------------------------------------------
-# NEW: GET ALL DRIVERS
+# GET ALL DRIVERS
 # --------------------------------------------------------
 @app.get("/vozaci")
 def list_vozaci():
@@ -205,7 +205,7 @@ def list_vozaci():
 
 
 # --------------------------------------------------------
-# NEW: GET ALL VIOLATIONS
+# GET ALL VIOLATIONS
 # --------------------------------------------------------
 @app.get("/prekrsaji")
 def list_prekrsaji():
@@ -222,7 +222,7 @@ def list_prekrsaji():
 
 
 # --------------------------------------------------------
-# 🆕 HELPER: Save YOLO labels from detections
+# Save YOLO labels from detections
 # --------------------------------------------------------
 def save_yolo_labels(image_path: str, label_path: str):
     """
@@ -277,7 +277,7 @@ def save_yolo_labels(image_path: str, label_path: str):
 
     print(f"✅ Sačuvano {len(valid_boxes)} parking-relevantnih detekcija")
 # --------------------------------------------------------
-# RECORD CONFIRMED VIOLATION (🆕 SA UČENJEM)
+# RECORD CONFIRMED VIOLATION (SA UČENJEM)
 # --------------------------------------------------------
 class Detektovano(BaseModel):
     vozac_id: int
@@ -302,7 +302,7 @@ def record_violation(d: Detektovano):
     conn.commit()
     conn.close()
 
-    # 2. 🆕 ČUVANJE ZA UČENJE - Kopiraj slike + generiši YOLO labele
+    # 2. ČUVANJE ZA UČENJE - Kopiraj slike + generiši YOLO labele
     timestamp_file = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     # Prva slika
@@ -334,7 +334,7 @@ def record_violation(d: Detektovano):
 
 
 # --------------------------------------------------------
-# 🆕 RECORD OK DETECTION (nema prekršaja)
+# RECORD OK DETECTION (nema prekršaja)
 # --------------------------------------------------------
 @app.post("/record_ok_detection")
 async def record_ok_detection(image_path: str = Form(...)):
@@ -382,12 +382,8 @@ def reject_violation(d: Detektovano):
 
     return {"message": "Odbijene slike sačuvane za treniranje."}
 
-
 # --------------------------------------------------------
-# REJECT VIOLATION (save for later analysis)
-# --------------------------------------------------------
-# --------------------------------------------------------
-# 🆕 REJECT DETECTION - Pojednostavljen (UVIJEK RADI!)
+# REJECT DETECTION
 # --------------------------------------------------------
 @app.post("/reject_detection")
 async def reject_detection(
@@ -425,7 +421,7 @@ async def reject_detection(
     }
 
 # --------------------------------------------------------
-# 🆕 LEARNING STATS - Check how many images are ready
+# LEARNING STATS - Check how many images are ready
 # --------------------------------------------------------
 @app.get("/learning_stats")
 def get_learning_stats():
@@ -440,15 +436,10 @@ def get_learning_stats():
         "confirmed_images": confirmed_images,
         "rejected_first": rejected_first,
         "rejected_zoom": rejected_zoom,
-        "ready_for_retraining": confirmed_images >= 10  # 🔴 PROMIJENJEN PRAG SA 50 NA 10
+        "ready_for_retraining": confirmed_images >= 20
     }
-
-
 # --------------------------------------------------------
-# 🆕 RETRAIN MODEL - Main learning endpoint
-# --------------------------------------------------------
-# --------------------------------------------------------
-# 🆕 RETRAIN MODEL - Main learning endpoint
+# RETRAIN MODEL - Main learning endpoint
 # --------------------------------------------------------
 @app.post("/retrain_model")
 async def retrain_model():
@@ -457,10 +448,10 @@ async def retrain_model():
     """
     confirmed_images = os.listdir(os.path.join(CONFIRMED_DIR, "images"))
 
-    if len(confirmed_images) < 10:
+    if len(confirmed_images) < 20:
         return {
             "status": "NOT_ENOUGH_DATA",
-            "message": f"Potrebno je minimum 10 slika, trenutno ima {len(confirmed_images)}"
+            "message": f"Potrebno je minimum 20 slika, trenutno ima {len(confirmed_images)}"
         }
 
     print(f"🚀 Pokrećem retraining sa {len(confirmed_images)} novih slika...")
@@ -493,12 +484,12 @@ async def retrain_model():
     print(f"📁 Dataset path: {config['path']}")
 
     # 2. Učitaj trenutni model
-    current_model = YOLO("backend/weights/best.pt")
+    current_model = YOLO("backend/weights/best-dlt.pt")
 
     # 3. Sačuvaj backup starog modela
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = f"backend/weights/backup_model_{timestamp}.pt"
-    shutil.copy("backend/weights/best.pt", backup_path)
+    shutil.copy("backend/weights/best-dlt.pt", backup_path)
 
     print(f"💾 Backup starog modela: {backup_path}")
 
@@ -508,9 +499,11 @@ async def retrain_model():
     try:
         results = current_model.train(
             data=config_path,
-            epochs=20,
+            epochs=5,
             imgsz=640,
             batch=8,
+            lr0=0.0001,
+            freeze=10,
             project='backend/retraining_runs',
             name=f'retrain_{timestamp}',
             exist_ok=True
@@ -535,12 +528,12 @@ async def retrain_model():
             print(f"✅ Novi model je bolji! Ažuriram...")
 
             # Kopiraj novi model preko starog
-            new_model_path = f"backend/retraining_runs/retrain_{timestamp}/weights/best.pt"
-            shutil.copy(new_model_path, "backend/weights/best.pt")
+            new_model_path = f"backend/retraining_runs/retrain_{timestamp}/weights/best-dlt.pt"
+            shutil.copy(new_model_path, "backend/weights/best-dlt.pt")
 
             # Reload model u memoriji
             global model
-            model = YOLO("backend/weights/best.pt")
+            model = YOLO("backend/weights/best-dlt.pt")
 
             # Arhiviraj korištene confirmed slike
             archive_dir = f"backend/confirmed_archive/{timestamp}"
@@ -564,7 +557,7 @@ async def retrain_model():
             print(f"⚠️ Novi model nije bolji. Zadržavam stari.")
 
             # Restore backup
-            shutil.copy(backup_path, "backend/weights/best.pt")
+            shutil.copy(backup_path, "backend/weights/best-dlt.pt")
 
             return {
                 "status": "NO_IMPROVEMENT",
@@ -578,7 +571,7 @@ async def retrain_model():
 
         # Restore backup ako je nešto pošlo po zlu
         if os.path.exists(backup_path):
-            shutil.copy(backup_path, "backend/weights/best.pt")
+            shutil.copy(backup_path, "backend/weights/best-dlt.pt")
 
         return {
             "status": "ERROR",
@@ -615,7 +608,7 @@ async def analyze_first_image(file: UploadFile = File(...)):
         elif cls_name.startswith("NepropisnoParkirano"):
             violations.append(cls_name)
 
-    # Proveri da li je auto NA REZERVACIJI
+    # Provjeri da li je auto NA REZERVACIJI
     car_on_reservation = (has_reservation_sign and has_auto and has_occupied_spot)
 
     # --- LOGIKA DETEKCIJE ---
@@ -720,7 +713,7 @@ async def analyze_zoom_image(
         conn.close()
         return {"status": "NO_DRIVER", "plate": plate_text}
 
-    # PROVERA ZA REZERVACIJU
+    # PROVJERA ZA REZERVACIJU
     if on_reservation:
         # Vozač IMA rezervaciju - parkiranje OK
         if driver[5]:

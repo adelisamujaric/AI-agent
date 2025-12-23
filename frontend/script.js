@@ -7,7 +7,7 @@ const API_CONFIRM = "http://localhost:8000/record_violation";
 const API_DETECT  = "http://localhost:8000/detect";
 const API_REJECT  = "http://localhost:8000/reject_violation";
 const API_OK_DETECTION = "http://localhost:8000/record_ok_detection";
-// 🆕 Novi API endpointi za učenje
+//API endpointi za učenje
 const API_LEARNING_STATS = "http://localhost:8000/learning_stats";
 const API_RETRAIN = "http://localhost:8000/retrain_model";
 
@@ -83,9 +83,89 @@ async function analyzeOrZoom() {
 }
 
 // ------------------------------------------------------------------
-// 1️⃣ ANALYZE FIRST IMAGE
-// ------------------------------------------------------------------
+// ANALYZE FIRST IMAGE
 async function analyzeFirstImage(file) {
+    console.log("🚀🚀🚀 === ANALYZE FIRST IMAGE STARTED === 🚀🚀🚀");
+    console.log("File:", file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    showSpinner();
+
+    console.log("📤 Šaljem request na:", API_FIRST);
+
+    try {
+        let res = await fetch(API_FIRST, { method: "POST", body: formData });
+        console.log("📥 Response dobiven, status:", res.status);
+
+        let data = await res.json();
+
+        console.log("════════════════════════════════════");
+        console.log("🔍 BACKEND RESPONSE:");
+        console.log("Full object:", data);
+        console.log("data.status:", data.status);
+        console.log("data.message:", data.message);
+        console.log("data.prekrsaj_id:", data.prekrsaj_id);
+        console.log("data.on_reservation:", data.on_reservation);
+        console.log("════════════════════════════════════");
+
+        await showFirstDetection(file);
+        await drawDetectionsOnImage("canvas1", "firstImage", file);
+
+        hideSpinner();
+
+        console.log("💡 Provjeravam status...");
+
+        if (data.status === "OK") {
+            console.log("✅ USAO U OK BLOK");
+            showMessage(data.message || "Nema prekršaja ✔", "green");
+            enableConfirmButtons();
+            return;
+        }
+
+        console.log("⚠️ Status nije OK, provjeravam NEEDS_ZOOM...");
+        console.log("Uslov 1:", data.status === "NEEDS_ZOOM");
+        console.log("Uslov 2:", data.status === "NeedsZoom");
+
+        if (data.status === "NEEDS_ZOOM" || data.status === "NeedsZoom") {
+            console.log("⚠️⚠️⚠️ USAO U NEEDS_ZOOM BLOK! ⚠️⚠️⚠️");
+
+            currentViolationId = data.prekrsaj_id;
+            isOnReservation = data.on_reservation || false;
+
+            console.log("📝 Postavljam: currentViolationId =", currentViolationId);
+            console.log("📝 Postavljam: isOnReservation =", isOnReservation);
+            console.log("📝 Pozivam showMessage sa:", data.message);
+
+            showMessage(data.message, "orange");
+
+            console.log("📝 showMessage pozvan!");
+
+            let btn = document.getElementById("actionButton");
+            btn.textContent = "📸 Učitaj bližu sliku";
+            btn.style.background = "#ff9600";
+
+            state = "ZOOM";
+
+            document.getElementById("imageInput").value = "";
+            document.getElementById("previewImage").style.display = "none";
+
+            console.log("✅ Sve postavljeno, state = ZOOM");
+        } else {
+            console.log("❌ NIJE USAO U NEEDS_ZOOM BLOK!");
+            console.log("❌ Status je:", data.status);
+        }
+
+    } catch (error) {
+        console.error("❌❌❌ GREŠKA:", error);
+        hideSpinner();
+    }
+
+    console.log("🏁 === ANALYZE FIRST IMAGE FINISHED === 🏁");
+}
+// ------------------------------------------------------------------
+/*async function analyzeFirstImage(file) {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -105,7 +185,7 @@ async function analyzeFirstImage(file) {
         return;
     }
 
-    if (data.status === "NEEDS_ZOOM") {
+    if (data.status === "NEEDS_ZOOM" || data.status === "NeedsZoom") {
         currentViolationId = data.prekrsaj_id;
         isOnReservation = data.on_reservation || false;
         showMessage(data.message, "orange");
@@ -120,7 +200,7 @@ async function analyzeFirstImage(file) {
         document.getElementById("previewImage").style.display = "none";
     }
 }
-
+*/
 async function analyzeZoomImage(file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -261,7 +341,7 @@ async function confirmViolation() {
 }
 
 // ------------------------------------------------------------------
-// REJECT VIOLATION - POJEDNOSTAVLJENO (uvijek radi!)
+// REJECT VIOLATION
 // ------------------------------------------------------------------
 async function rejectViolation() {
     console.log("🔴 rejectViolation() pozvana");
@@ -307,9 +387,22 @@ async function rejectViolation() {
 // ------------------------------------------------------------------
 // UI HELPERS
 // ------------------------------------------------------------------
-function showMessage(text, color) {
+/*function showMessage(text, color) {
     document.getElementById("resultsText").innerHTML =
         `<p style="color:${color};"><b>${text}</b></p>`;
+}*/
+
+function showMessage(text, color) {
+    console.log("📢 showMessage POZVAN:");
+    console.log("  text:", text);
+    console.log("  color:", color);
+
+    let element = document.getElementById("resultsText");
+    console.log("  element:", element);
+
+    element.innerHTML = `<p style="color:${color};"><b>${text}</b></p>`;
+
+    console.log("  innerHTML postavljeno na:", element.innerHTML);
 }
 
 function resetAfterOK() {
@@ -472,7 +565,7 @@ function showDriverCard(driver, opis, kazna) {
 }
 
 // ------------------------------------------------------------------
-// 🆕 LEARNING SYSTEM - Check stats
+// LEARNING SYSTEM - Check stats
 // ------------------------------------------------------------------
 async function checkLearningStats() {
     try {
@@ -487,7 +580,7 @@ async function checkLearningStats() {
             <br>
             ${data.ready_for_retraining ?
               "🟢 <b>Spremno za retraining!</b>" :
-              `🟡 Potrebno još ${10 - data.confirmed_images} slika`}
+              `🟡 Potrebno još ${20 - data.confirmed_images} slika`}
         `;
 
         // Omogući dugme ako ima dovoljno podataka
@@ -501,7 +594,7 @@ async function checkLearningStats() {
 }
 
 // ------------------------------------------------------------------
-// 🆕 LEARNING SYSTEM - Trigger retraining
+// LEARNING SYSTEM - Trigger retraining
 // ------------------------------------------------------------------
 async function triggerRetraining() {
     if (!confirm("Da li sigurno želiš pokrenuti retraining modela? Ovo može potrajati nekoliko minuta.")) {
